@@ -14,7 +14,7 @@ But if you deploy them to production today, you are flying blind. They suffer fr
 
 `decision-guard` is the missing MLOps safety net. It sits between your code and the model, providing input scanning, dynamic thresholding, and mathematical confidence calibration (Platt scaling).
 
----
+
 
 ## 📖 Table of Contents
 - [Who is this for?](#who-is-this-for)
@@ -25,7 +25,7 @@ But if you deploy them to production today, you are flying blind. They suffer fr
 - [Backend Agnostic](#backend-agnostic)
 - [Contributing](#contributing)
 
----
+
 
 ## Who is this for?
 
@@ -33,7 +33,6 @@ This library is for **AI Engineers, Backend Developers, and MLOps teams** who ar
 
 If you are using LLMs (like GPT-4 or Claude) for simple classification tasks because you need their safety tuning, but you want the 30ms latency of Laya or Jev, `decision-guard` provides the safety and calibration guarantees you need to make the switch confidently.
 
----
 
 ## How to Use It
 
@@ -100,7 +99,7 @@ else:
     print("Confidence is too low for the cost of a mistake. Escalating to human.")
 ```
 
----
+
 
 ## Proof & Performance
 
@@ -113,7 +112,7 @@ else:
 
 Without `decision-guard`, your system would blindly auto-approve the 11+ option choice because it received a 100% confidence score. With `decision-guard`, the true 11.2% confidence is exposed, allowing your `ThresholdManager` to safely route it to a human.
 
----
+
 
 ## Backend Agnostic
 
@@ -123,7 +122,7 @@ The library provides adapters for both proprietary APIs and local open-source mo
 
 They implement the exact same `predict()` interface, allowing you to develop locally for free with Laya, and deploy to a managed Jev API in production with zero code changes.
 
----
+
 
 ## Contributing
 
