@@ -1,4 +1,4 @@
-# decision-guard 🛡️
+# decision-guard: Security & calibration middleware for System 1 AI Models
 
 <div align="center">
   <img src="assets/image.png" alt="decision-guard architecture" width="80%">
