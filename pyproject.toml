@@ -6,10 +6,18 @@ build-backend = "setuptools.build_meta"
 name = "decision-guard"
 version = "0.1.0"
 description = "Calibration, threshold management, and safety guardrails for System 1 decision models."
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.9"
 dependencies = [
     "pydantic>=2.0",
+]
+authors = [
+    {name = "Ashish Patil", email = "ashishtp2005@gmail.com"}
+]
+keywords = [
+    "ai-safety", "classification", "confidence-calibration", "jev", "jev-ai", 
+    "middleware", "jev-api", "laya", "mlops", "platt-scaling", "tests", 
+    "prompt-engineering", "prompt-injection", "system-1", "system1"
 ]
 
 [project.optional-dependencies]
