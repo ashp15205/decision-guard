@@ -1,95 +1,70 @@
-import json
 from decision_guard.schema import ChoiceQuestion
-from decision_guard.adapters.laya import LayaAdapter
 from decision_guard.adapters.jev import JevAdapter
-from decision_guard.store import LocalStore
+from decision_guard.safety import StateSafetyGuard
 from decision_guard.calibration import CalibrationTracker
 from decision_guard.thresholds import ThresholdManager, GateDecision
-from decision_guard.safety import StateSafetyGuard
+from decision_guard.store import LocalStore
 
 def run_example():
-    print("--- Running decision-guard end-to-end example ---")
+    print("--- Running decision-guard end-to-end example ---\n")
     
-    # 1. Initialize Adapters
-    # Laya requires torch/transformers. Jev is a pure HTTP wrapper.
-    # We will use JevAdapter here to demonstrate as it requires zero setup to mock.
-    print("\n1. Initializing Adapter...")
-    adapter = JevAdapter(api_key="mock_key")
-    # adapter = LayaAdapter() # If you have the optional dependencies installed
-    
-    # 2. Define State and Question
-    state = "The customer wants to reset their password but the email link is expired."
-    questions = [
-        ChoiceQuestion(
-            id="q_routing",
-            description="Route this support ticket to the correct department.",
-            options=["billing", "tech_support", "sales", "general"]
-        )
-    ]
-    
-    # 3. Safety Guard
-    print("\n2. Running Safety Guard...")
-    safety = StateSafetyGuard()
-    scan_result = safety.scan_state(state)
-    if not scan_result.is_safe:
-        print(f"  [ERROR] Injection detected: {scan_result.flagged_patterns}")
-        return
-    print("  [OK] State is safe.")
-    
-    # Optional: Run Adversarial Test Harness
-    print("  [INFO] Running Adversarial Test Harness...")
-    adv_results = safety.test_adversarial(
-        adapter, 
-        questions, 
-        base_state=state, 
-        expected_answers={"q_routing": "tech_support"} # assuming mock returns 'billing' (option 0)
-    )
-    print(f"  [INFO] Adversarial tests flipped answers: {any(r['flipped'] for r in adv_results.values())}")
-
-    # 4. Prediction
-    print("\n3. Executing Prediction...")
-    response = adapter.predict(state, questions)
-    raw_answer = response.answers["q_routing"]
-    print(f"  Raw Answer: {raw_answer.choice}, Confidence: {raw_answer.confidence:.2f}")
-    
-    # 5. Calibration
-    print("\n4. Applying Calibration...")
-    store = LocalStore("example_logs.jsonl")
+    # 1. Setup your tools
+    store = LocalStore("logs.jsonl")
+    safety_guard = StateSafetyGuard()
     tracker = CalibrationTracker(store)
+    thresholds = ThresholdManager(store)
     
-    # Log the prediction
-    pred_id = store.log_prediction(
-        question_id="q_routing",
-        state=state,
-        prediction=raw_answer.choice,
-        confidence=raw_answer.confidence
+    # We will try to load the LayaAdapter. If torch/transformers aren't installed,
+    # we fall back to a mocked JevAdapter so the script always runs out of the box.
+    try:
+        from decision_guard.adapters.laya import LayaAdapter
+        print("[INFO] Loading LayaAdapter (this may take a moment to download weights)...")
+        adapter = LayaAdapter()
+    except ImportError:
+        print("[INFO] 'torch' and 'transformers' not installed. Falling back to mocked JevAdapter.")
+        adapter = JevAdapter(api_key="mock_key")
+    
+    # 2. Define the decision you need the model to make
+    question = ChoiceQuestion(
+        id="q_routing",
+        description="Route this support ticket to the correct department.",
+        options=["billing", "tech_support", "sales", "general"]
     )
+    user_input = "I need a refund for my last purchase."
+    print(f"\nUser Input: '{user_input}'")
     
-    # Mocking that we previously fitted a temperature T = 1.5
-    tracker.temperature_params["q_routing"] = 1.5
-    calibrated_response = tracker.calibrated_predict(response)
-    cal_answer = calibrated_response.answers["q_routing"]
-    print(f"  Calibrated Confidence: {cal_answer.confidence:.2f}")
+    # 3. Scan for adversarial injections BEFORE calling the model
+    scan = safety_guard.scan_state(user_input)
+    if not scan.is_safe:
+        raise ValueError(f"Injection detected: {scan.flagged_patterns}")
+    print("[OK] Input is safe. No adversarial patterns detected.")
     
-    # Log the outcome later (simulating human feedback)
-    store.log_outcome(pred_id, "q_routing", "tech_support")
+    # 4. Execute the prediction
+    print("[INFO] Running prediction...")
+    raw_response = adapter.predict(user_input, [question])
+    raw_answer = raw_response.answers["q_routing"]
+    print(f"  -> Raw Prediction: {raw_answer.choice} (Confidence: {raw_answer.confidence:.2f})")
     
-    # 6. Threshold Management
-    print("\n5. Threshold Gating...")
-    manager = ThresholdManager(store)
-    # Set high cost for false positives, lower for false negatives
-    manager.set_cost_profile("q_routing", fp_cost=100.0, fn_cost=10.0)
+    # 5. Calibrate the over-confident raw scores based on historical accuracy
+    # (Mocking that we previously fitted a temperature T=1.5 to correct overconfidence)
+    tracker.temperature_params["q_routing"] = (1.5, 0.0) 
+    calibrated_response = tracker.calibrated_predict(raw_response)
+    answer = calibrated_response.answers["q_routing"]
+    print(f"  -> Calibrated Confidence: {answer.confidence:.2f}")
     
-    # In a real scenario, this computes based on historical logs
-    # For the example, we'll force the recommended threshold
-    manager.recommended_thresholds["q_routing:tech_support"] = 0.90
+    # 6. Make a safe decision based on the financial cost of a mistake
+    thresholds.set_cost_profile(question_id="q_routing", fp_cost=1000.0, fn_cost=10.0)
     
-    decision = manager.gate(cal_answer, target_answer="tech_support")
-    print(f"  Gate Decision: {decision.value}")
+    # Force recommendation threshold for the sake of the example
+    thresholds.recommended_thresholds["q_routing:billing"] = 0.85
+    
+    decision = thresholds.gate(answer, target_answer="billing")
+    
+    print("\n--- Final Decision ---")
     if decision == GateDecision.ACT:
-        print("  -> Executing action automatically.")
+        print("Confidence is high enough. Routing to billing automatically.")
     else:
-        print("  -> Escalating to LLM/Human for review.")
+        print("Confidence is too low for the cost of a mistake. Escalating to human.")
 
 if __name__ == "__main__":
     run_example()

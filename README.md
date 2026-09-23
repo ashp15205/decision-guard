@@ -9,7 +9,7 @@
 System 1 decision models (like **TypeSafe Jev** and **ConvAI Laya**) are incredibly fast, classifying inputs in ~30ms by replacing token generation with deterministic scoring. 
 
 But if you deploy them to production today, you are flying blind. They suffer from two documented weaknesses:
-1. **Uncalibrated Confidence:** They ship over-confident out of the box. A 99% confidence score often maps to a 50% accuracy rate (like the known Laya bug where Choice questions with 11+ options silently saturate to 1.0 confidence).
+1. **Uncalibrated Confidence:** They ship over-confident out of the box. A 100.0% confidence score often maps to a 10.0% accuracy rate (like the known Laya bug where Choice questions with 11+ options silently saturate to 1.0 confidence).
 2. **No Input Defenses:** They lack safety guardrails and will blindly classify adversarially injected text.
 
 `decision-guard` is the missing MLOps safety net. It sits between your code and the model, providing input scanning, dynamic thresholding, and mathematical confidence calibration (Platt scaling).
@@ -111,6 +111,8 @@ else:
 | 11+ Option Choice | **100.0%** (Bug) | **10.0%** | **11.2%** (Severe correction) |
 
 Without `decision-guard`, your system would blindly auto-approve the 11+ option choice because it received a 100% confidence score. With `decision-guard`, the true 11.2% confidence is exposed, allowing your `ThresholdManager` to safely route it to a human.
+
+*(Note: The numbers above are representative demonstrations of Platt scaling mathematically correcting the known Laya saturation bug, not a formal evaluation on a public dataset).*
 
 
 

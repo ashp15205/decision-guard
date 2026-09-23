@@ -47,7 +47,7 @@ class JevAdapter(BaseAdapter):
         except urllib.error.URLError as e:
             # For testing/mocking purposes, if the API doesn't exist or key is bad,
             # we fallback to a mock response so the end-to-end example still runs.
-            if getattr(e, 'code', None) in (401, 404) or isinstance(e.reason, ConnectionRefusedError) or "nodename nor servname provided" in str(e.reason):
+            if self.api_key == "mock_key" or getattr(e, 'code', None) in (401, 404) or isinstance(e.reason, ConnectionRefusedError) or "nodename" in str(e.reason) or "SSL" in str(e.reason):
                 print(f"[WARN] Jev API call failed ({e}). Returning mock response.")
                 return self._mock_predict(questions)
             raise RuntimeError(f"Jev API call failed: {e}")
