@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sys1-decision-guard"
-version = "0.1.0"
+version = "0.1.1"
 description = "Calibration, threshold management, and safety guardrails for System 1 decision models."
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.9"
