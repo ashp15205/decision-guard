@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "decision-guard"
+name = "sys1-decision-guard"
 version = "0.1.0"
 description = "Calibration, threshold management, and safety guardrails for System 1 decision models."
 readme = {file = "README.md", content-type = "text/markdown"}

@@ -39,10 +39,10 @@ If you are using LLMs (like GPT-4 or Claude) for simple classification tasks bec
 ### Installation
 
 ```bash
-pip install decision-guard
+pip install sys1-decision-guard
 
 # To use local Laya inference (requires torch/transformers):
-# pip install decision-guard[laya]
+# pip install sys1-decision-guard[laya]
 ```
 
 ### End-to-End Pipeline
