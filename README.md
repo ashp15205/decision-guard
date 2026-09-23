@@ -4,12 +4,6 @@
   <img src="assets/image.png" alt="decision-guard architecture" width="80%">
 </div>
 
-<div align="center">
-  <a href="https://pypi.org/project/decision-guard/"><img src="https://img.shields.io/pypi/v/decision-guard.svg" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/decision-guard/"><img src="https://img.shields.io/pypi/pyversions/decision-guard.svg" alt="Python versions"></a>
-  <a href="https://github.com/ashp15205/decision-guard/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
-</div>
-
 <br>
 
 System 1 decision models (like **TypeSafe Jev** and **ConvAI Laya**) are incredibly fast, classifying inputs in ~30ms by replacing token generation with deterministic scoring. 
