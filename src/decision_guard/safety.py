@@ -5,14 +5,7 @@ from pydantic import BaseModel
 from decision_guard.adapters.base import BaseAdapter
 from decision_guard.schema import Question
 
-# Common injection phrases found in adversarial attacks
-INJECTION_PATTERNS = [
-    r"(?i)ignore\s+(all\s+)?(previous\s+)?instructions",
-    r"(?i)system\s+prompt",
-    r"(?i)you\s+must\s+output",
-    r"(?i)disregard\s+the\s+above",
-    r"(?i)now\s+output\s+instead",
-]
+from decision_guard.patterns import INJECTION_PATTERNS
 
 class SafetyScanResult(BaseModel):
     is_safe: bool
